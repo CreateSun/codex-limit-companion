@@ -8,7 +8,7 @@ macOS menu-bar helper that reads the current Codex account's short usage window.
 git clone https://github.com/CreateSun/codex-limit-companion.git
 cd codex-limit-companion
 zsh build-app.sh
-open CodexLimitCompanion.app
+open .build/package/CodexLimitCompanion.app
 ```
 
 Prerequisites:
@@ -63,3 +63,5 @@ This release is ad-hoc signed, not Apple-notarized. If macOS blocks the download
 - Preferences stay in local macOS UserDefaults; credentials are handled by your local Codex CLI and are not included in this repository.
 
 Quota polling and session reads reuse one background Codex App Server connection. The client waits for initialization, drains both output pipes, cancels completed request timers, and closes the connection on EOF, timeout, or app exit. The next explicit read can reconnect after a failure.
+
+The app icon uses a gray GPT mark with blue fill fixed at 50%. Build output lives in `.build/package` to avoid registering multiple visible app copies. For everyday use, install only one copy in `/Applications/CodexLimitCompanion.app`.
