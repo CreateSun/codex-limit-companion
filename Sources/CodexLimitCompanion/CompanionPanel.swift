@@ -8,6 +8,7 @@ struct CompanionPanel: View {
     @State private var query = ""
     @State private var selectedOnly = false
     @State private var confirmSend = false
+    @State private var sessionPage = 0
     @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
     private var filtered: [ThreadSummary] {
         model.threads.filter {
@@ -115,9 +116,14 @@ struct CompanionPanel: View {
                         HStack {
                             Label(window.title, systemImage: "sparkles").font(.system(size: 12, weight: .medium))
                             Spacer()
-                            Text(model.error != nil ? "上次数据" : bucket.blocked ? "等待恢复" : "可用")
-                                .font(.system(size: 10, weight: .semibold)).padding(.horizontal, 8).padding(.vertical, 4)
-                                .background(accent.opacity(0.10), in: Capsule()).foregroundStyle(accent)
+                            VStack(alignment: .trailing, spacing: 6) {
+                                Text(model.error != nil ? "上次数据" : bucket.blocked ? "等待恢复" : "可用")
+                                    .font(.system(size: 10, weight: .semibold)).padding(.horizontal, 8).padding(.vertical, 4)
+                                    .background((bucket.blocked ? Color.orange : .green).opacity(0.10), in: Capsule())
+                                    .foregroundStyle(bucket.blocked ? Color.orange : .green)
+                                recoveryEstimate(bucket)
+                            }
+
                         }
                         HStack(alignment: .firstTextBaseline, spacing: 4) {
                             Text(window.remaining.formatted(.number.precision(.fractionLength(0...1))))
@@ -170,6 +176,73 @@ struct CompanionPanel: View {
         }
     }
     private var sessions: some View {
+        VStack(alignment: .leading, spacing: 14) {
+            Picker("会话页面", selection: $sessionPage) {
+                Text("选择会话").tag(0)
+                Text("恢复日志 · \(model.recoveryLogs.count)").tag(1)
+            }.pickerStyle(.segmented)
+            if sessionPage == 0 { sessionSelection }
+            else { recoveryHistory }
+        }
+    }
+    private var recoveryHistory: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Text("仅保存在本机 · 最近 300 条 · 从本版本开始记录")
+                .font(.system(size: 10)).foregroundStyle(.secondary)
+            if model.recoveryLogs.isEmpty {
+                VStack(spacing: 10) {
+                    Image(systemName: "clock.arrow.circlepath").font(.title).foregroundStyle(.secondary)
+                    Text("还没有自动恢复记录").font(.callout)
+                    Text("额度恢复时，将记录每个目标会话的发送情况。")
+                        .font(.caption).foregroundStyle(.secondary)
+                }.frame(maxWidth: .infinity).padding(.vertical, 28)
+            }
+            LazyVStack(spacing: 9) {
+                ForEach(model.recoveryLogs) { entry in
+                    DisclosureGroup {
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text("触发时间：" + entry.trigger.date.formatted(date: .numeric, time: .standard))
+                            Text("监控额度：" + entry.trigger.bucket)
+                            if let id = entry.threadID { Text("会话 ID：" + id).textSelection(.enabled) }
+                            Text("发送内容").fontWeight(.semibold)
+                            Text(entry.message).textSelection(.enabled).frame(maxWidth: .infinity, alignment: .leading)
+                                .padding(9).background(.primary.opacity(0.04), in: RoundedRectangle(cornerRadius: 8))
+                            if let detail = entry.detail { Text(detail).foregroundStyle(.secondary) }
+                            if let date = entry.completedAt { Text("结果时间：" + date.formatted(date: .numeric, time: .standard)).foregroundStyle(.secondary) }
+                        }.font(.system(size: 10)).padding(.top, 8)
+                    } label: {
+                        VStack(alignment: .leading, spacing: 6) {
+                            Text(entry.title).font(.system(size: 12, weight: .medium)).lineLimit(2)
+                            HStack {
+                                Text(entry.trigger.date, format: .dateTime.month().day().hour().minute().second())
+                                Spacer()
+                                Text(entry.status.label).foregroundStyle(entry.status == .queued ? Color.green : .orange)
+                            }.font(.system(size: 10)).foregroundStyle(.secondary)
+                        }
+                    }.padding(12).card()
+                }
+            }
+        }
+    }
+    private func recoveryEstimate(_ bucket: QuotaBucket) -> some View {
+        TimelineView(.periodic(from: .now, by: 30)) { context in
+            VStack(alignment: .trailing, spacing: 3) {
+                if model.error != nil {
+                    Text("等待最新额度数据").foregroundStyle(.orange)
+                } else if bucket.blocked {
+                    if let date = bucket.estimatedRecovery(after: context.date) {
+                        Text("预计恢复 " + date.formatted(.dateTime.month().day().hour().minute()))
+                            .foregroundStyle(.orange)
+                        Text(model.autoSend || model.autoPaste ? "恢复后约 60 秒内检查并触发" : "自动发送已关闭")
+                            .foregroundStyle(.secondary)
+                    } else { Text("预计恢复时间待确认").foregroundStyle(.orange) }
+                } else {
+                    Text("当前无需等待恢复").foregroundStyle(.green)
+                }
+            }.font(.system(size: 9)).multilineTextAlignment(.trailing)
+        }
+    }
+    private var sessionSelection: some View {
         VStack(alignment: .leading, spacing: 12) {
             HStack {
                 Image(systemName: "magnifyingglass").foregroundStyle(.secondary)

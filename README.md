@@ -45,9 +45,9 @@ COMPANION_LIVE_CHECK=1 swift test --filter LiveReadTests
 
 The GPT mark identifies the service monitored by this independent utility. OpenAI and ChatGPT marks belong to OpenAI; this app is not an official OpenAI product.
 
-## Release 0.0.2
+## Release 0.0.3
 
-Download `CodexLimitCompanion-0.0.2-macos-arm64.zip` from [Releases](https://github.com/CreateSun/codex-limit-companion/releases/tag/v0.0.2), unzip it, and open `CodexLimitCompanion.app`. The app appears in the menu bar, not the Dock. The prebuilt app targets Apple Silicon and macOS 14 or later; Intel users can build from source on an Intel Mac.
+Download `CodexLimitCompanion-0.0.3-macos-arm64.zip` from [Releases](https://github.com/CreateSun/codex-limit-companion/releases/tag/v0.0.3), unzip it, and open `CodexLimitCompanion.app`. The app appears in the menu bar, not the Dock. The prebuilt app targets Apple Silicon and macOS 14 or later; Intel users can build from source on an Intel Mac.
 
 This release is ad-hoc signed, not Apple-notarized. If macOS blocks the downloaded app, allow it in System Settings → Privacy & Security, or build it locally.
 
@@ -65,3 +65,17 @@ This release is ad-hoc signed, not Apple-notarized. If macOS blocks the download
 Quota polling and session reads reuse one background Codex App Server connection. The client waits for initialization, drains both output pipes, cancels completed request timers, and closes the connection on EOF, timeout, or app exit. The next explicit read can reconnect after a failure.
 
 The app icon uses a gray GPT mark with blue fill fixed at 50%. Build output lives in `.build/package` to avoid registering multiple visible app copies. For everyday use, install only one copy in `/Applications/CodexLimitCompanion.app`.
+
+The app runs only in the menu bar. Click its icon to toggle the anchored popover; click outside to dismiss. Reopening from Finder or Launchpad shows this same popover, never a detached window.
+
+### Recovery history and estimated timing
+
+**会话 → 恢复日志** keeps the latest 300 automatic recovery delivery records on this Mac. Each record includes the target session (when known), trigger time, exact message, and outcome. Queued means Codex accepted the message, not that the task finished. Foreground keyboard submission cannot confirm the target session or successful delivery and is labelled accordingly. History starts with this build; older events cannot be reconstructed. It is stored in `~/Library/Application Support/CodexLimitCompanion/recovery-history.json` with owner-only access and serialized background writes.
+
+The overview shows the latest reset time among all exhausted windows as an estimate, with recovery checked every 60 seconds while running. Unknown or expired reset data is labelled unconfirmed. Actual delivery requires observing recovery and a configured automatic delivery route; sleep, network failures, or server restrictions can delay it.
+
+On macOS Tahoe, check **System Settings → Menu Bar → Allow in the Menu Bar** if the icon is missing. Creating a status item successfully does not prove macOS has displayed it. The application does not substitute a standalone window for the menu bar popover.
+
+On Tahoe, saved status-item placement is restored on the next main run-loop turn after creation. Popovers are presented only after the status window has a valid screen-top anchor; an unhosted status item must not open a panel at the bottom-left fallback position.
+
+If the app's own Menu Bar switch is on but ControlCenter logs `Moving host to blocked list`, Tahoe may have associated the app with the developer host that launched it. On the development Mac, enabling **ChatGPT** in Menu Bar settings immediately produced `Unblocking host` for `local.codex.limit-companion` and restored a displayable item. This is an OS association workaround, not an app placement fix. Do not treat a valid proxy-window coordinate alone as proof that the icon is visible. Keep the host switch enabled until the system association is corrected; the app itself still uses the macOS system status bar.
