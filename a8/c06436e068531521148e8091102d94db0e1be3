@@ -1,0 +1,35 @@
+README.md
+  s_f52d878e60a7fc::t_a3cd3ddcef50d0 68
+  s_f52d878e60a7fc::t_98d5bb5536a8f0 70-77
+  s_f52d878e60a7fc::t_e483292d7242f4 69
+  s_f52d878e60a7fc::t_acc2674471605b 80-81
+  s_f52d878e60a7fc::t_975b326a82bfd2 78-79
+Sources/CodexLimitCompanion/CompanionModel.swift
+  s_f52d878e60a7fc::t_abfb73874b4c67 17,43-44,46-48,50-65,91,93-97,117,119-132,136-143,159-162,164,168,174-179
+Sources/CodexLimitCompanion/CompanionPanel.swift
+  s_f52d878e60a7fc::t_ff76d0e704e30a 11,119-126,179-245
+Sources/CodexLimitCompanion/CompanionApp.swift
+  s_f52d878e60a7fc::t_ff76d0e704e30a 16-21,74
+  s_f52d878e60a7fc::t_e483292d7242f4 22,30,43-46,50-52,54,58-71,79,81,86-87
+  s_f52d878e60a7fc::t_a3cd3ddcef50d0 27,40-42,47-49,53,57
+Sources/CodexLimitCompanion/RecoveryLog.swift
+  s_f52d878e60a7fc::t_abfb73874b4c67 1-77
+Tests/CodexLimitCompanionTests/StatusAnchorTests.swift
+  s_f52d878e60a7fc::t_5586522b8085ec 1-14
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.49-trip",
+  "base_commit_sha": "a8c06436e068531521148e8091102d94db0e1be3",
+  "prompts": {},
+  "sessions": {
+    "s_f52d878e60a7fc": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a130ef-570c-7181-acfb-4ed41f25eba6",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "yucui <yucui@trip.com>"
+    }
+  }
+}
