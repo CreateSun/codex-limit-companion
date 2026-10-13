@@ -1,0 +1,23 @@
+README.md
+  s_f52d878e60a7fc::t_e2e998d1942f8e 11,66-67
+build-app.sh
+  s_f52d878e60a7fc::t_e2e998d1942f8e 5,14-21
+Info.plist
+  s_f52d878e60a7fc::t_e2e998d1942f8e 13-14,20
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.49-trip",
+  "base_commit_sha": "00d2cb2c42d657e5d0be49f92507620dd225973e",
+  "prompts": {},
+  "sessions": {
+    "s_f52d878e60a7fc": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a130ef-570c-7181-acfb-4ed41f25eba6",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "yucui <yucui@trip.com>"
+    }
+  }
+}
