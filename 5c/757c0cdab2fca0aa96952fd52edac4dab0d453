@@ -1,0 +1,30 @@
+docs/index.html
+  s_f52d878e60a7fc::t_189442b3599c63 1-71
+docs/style.css
+  s_f52d878e60a7fc::t_189442b3599c63 1
+DEVELOPING.md
+  s_f52d878e60a7fc::t_189442b3599c63 2-17,19-93
+  s_f52d878e60a7fc::t_b9311a5ec8ac35 1,18
+scripts/package-dmg.sh
+  s_f52d878e60a7fc::t_b9311a5ec8ac35 1-29
+.gitignore
+  s_f52d878e60a7fc::t_b9311a5ec8ac35 6
+README.md
+  s_f52d878e60a7fc::t_189442b3599c63 1-13,15,17,19,21-26,28,30-33,35,37,39-43,45,47,49,51-54,56,58,60-61,63,65,67-68,70,72,74-75,77,79,81-82,84,86,88-89,91,93-101
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.49-trip",
+  "base_commit_sha": "5c757c0cdab2fca0aa96952fd52edac4dab0d453",
+  "prompts": {},
+  "sessions": {
+    "s_f52d878e60a7fc": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a130ef-570c-7181-acfb-4ed41f25eba6",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "yucui <yucui@trip.com>"
+    }
+  }
+}
