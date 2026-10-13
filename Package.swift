@@ -5,6 +5,7 @@ let package = Package(
     name: "CodexLimitCompanion",
     platforms: [.macOS(.v14)],
     targets: [
-        .executableTarget(name: "CodexLimitCompanion")
+        .executableTarget(name: "CodexLimitCompanion", resources: [.process("Resources")]),
+        .testTarget(name: "CodexLimitCompanionTests", dependencies: ["CodexLimitCompanion"])
     ]
 )
