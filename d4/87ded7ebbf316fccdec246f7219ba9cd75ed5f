@@ -1,0 +1,63 @@
+Tests/CodexLimitCompanionTests/LiveReadTests.swift
+  s_f52d878e60a7fc::t_dc8b483eb78374 1-6,8-15
+  s_f52d878e60a7fc::t_3ffa1715500e44 7
+build-app.sh
+  s_f52d878e60a7fc::t_fc6ee38c2b2ade 10,12
+Package.swift
+  s_f52d878e60a7fc::t_fc6ee38c2b2ade 8-9
+Sources/CodexLimitCompanion/CompanionPanel.swift
+  s_f52d878e60a7fc::t_bd2aa09d12dae3 81-88,159-301
+  s_f52d878e60a7fc::t_2c5238d487016e 103-111
+Tests/CodexLimitCompanionTests/RPCConnectionTests.swift
+  s_f52d878e60a7fc::t_b48aedb4f6e081 1-35,40-54,57,60-68
+  s_f52d878e60a7fc::t_3ffa1715500e44 36-39
+  s_f52d878e60a7fc::t_76f646cb901309 55-56,58-59
+Sources/CodexLimitCompanion/QuotaModels.swift
+  s_f52d878e60a7fc::t_fc6ee38c2b2ade 1-68
+Info.plist
+  s_f52d878e60a7fc::t_3d38f4852d21d9 16,18
+Sources/CodexLimitCompanion/RPCConnection.swift
+  s_f52d878e60a7fc::t_bd2aa09d12dae3 1-88,90-151
+  s_f52d878e60a7fc::t_3d38f4852d21d9 89
+Sources/CodexLimitCompanion/PerformanceRun.swift
+  s_f52d878e60a7fc::t_2c5238d487016e 1-56
+README.md
+  s_f52d878e60a7fc::t_3d38f4852d21d9 22,48-52
+  s_f52d878e60a7fc::t_f9e1a03c4f932c 16,30,58-60,62
+  s_f52d878e60a7fc::t_abcad002036f37 24,28,32,34,36-46
+  s_f52d878e60a7fc::t_3ffa1715500e44 26,31,64-65
+Tests/CodexLimitCompanionTests/SessionCacheTests.swift
+  s_f52d878e60a7fc::t_b48aedb4f6e081 1-44
+Sources/CodexLimitCompanion/CodexClient.swift
+  s_f52d878e60a7fc::t_abcad002036f37 13,15
+  s_f52d878e60a7fc::t_fc6ee38c2b2ade 4-5,18-19
+  s_f52d878e60a7fc::t_bd2aa09d12dae3 51-53,56,58-59
+Tests/CodexLimitCompanionTests/QuotaTests.swift
+  s_f52d878e60a7fc::t_7544830f344812 1-57
+Sources/CodexLimitCompanion/CompanionModel.swift
+  s_f52d878e60a7fc::t_289760ae5343ff 1-41,47-65,67-75,80-82,84-86,88-112,114-139
+  s_f52d878e60a7fc::t_b48aedb4f6e081 42-46,76-79,83,87
+  s_f52d878e60a7fc::t_dc8b483eb78374 113
+  s_f52d878e60a7fc::t_2c5238d487016e 66
+Sources/CodexLimitCompanion/CompanionApp.swift
+  s_f52d878e60a7fc::t_dc8b483eb78374 54-56
+  s_f52d878e60a7fc::t_bd2aa09d12dae3 30-32
+  s_f52d878e60a7fc::t_289760ae5343ff 1-24,29,33-53,57-89
+  s_f52d878e60a7fc::t_2c5238d487016e 25-28
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.49-trip",
+  "base_commit_sha": "d487ded7ebbf316fccdec246f7219ba9cd75ed5f",
+  "prompts": {},
+  "sessions": {
+    "s_f52d878e60a7fc": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a130ef-570c-7181-acfb-4ed41f25eba6",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "yucui <yucui@trip.com>"
+    }
+  }
+}
