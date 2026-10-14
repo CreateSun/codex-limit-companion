@@ -1,0 +1,52 @@
+Sources/CodexLimitCompanion/RPCConnection.swift
+  s_f52d878e60a7fc::t_87dba92fb82074 89
+docs/index.html
+  s_f52d878e60a7fc::t_d7421c531a9b9a 29,56-57
+Info.plist
+  s_f52d878e60a7fc::t_87dba92fb82074 18,20
+Sources/CodexLimitCompanion/AppUpdater.swift
+  s_f52d878e60a7fc::t_ce4e73c7b2c55c 114,143-146
+  s_f52d878e60a7fc::t_99e1996a9fb070 85,89-91,93
+  s_f52d878e60a7fc::t_3a6eba0f3acf0d 86-88,148,234
+  s_f52d878e60a7fc::t_87dba92fb82074 1-84,92,94-113,115-142,147,149-233,235-287
+CHANGELOG.md
+  s_f52d878e60a7fc::t_3a6eba0f3acf0d 1-2,4-10
+  s_f52d878e60a7fc::t_d7421c531a9b9a 3
+Tests/CodexLimitCompanionTests/UpdateTests.swift
+  s_f52d878e60a7fc::t_ce4e73c7b2c55c 1-39
+Tests/CodexLimitCompanionTests/InstallerTests.swift
+  s_f52d878e60a7fc::t_08f5d4d6f022b1 1-49
+Sources/CodexLimitCompanion/CompanionModel.swift
+  s_f52d878e60a7fc::t_949f7bcb944eac 51
+  s_f52d878e60a7fc::t_37c62d0044f92f 16,22,44-46,90-92,96,100
+  s_f52d878e60a7fc::t_87dba92fb82074 36,73
+Sources/CodexLimitCompanion/CompanionPanel.swift
+  s_f52d878e60a7fc::t_ce4e73c7b2c55c 121,123-124
+  s_f52d878e60a7fc::t_37c62d0044f92f 233,237,239,314
+  s_f52d878e60a7fc::t_87dba92fb82074 25,308
+Sources/CodexLimitCompanion/QuotaModels.swift
+  s_f52d878e60a7fc::t_37c62d0044f92f 23,58-59,61-94
+Sources/CodexLimitCompanion/RecoveryLog.swift
+  s_f52d878e60a7fc::t_37c62d0044f92f 71
+README.md
+  s_f52d878e60a7fc::t_d7421c531a9b9a 41-42,97
+  s_f52d878e60a7fc::t_3a6eba0f3acf0d 98
+Tests/CodexLimitCompanionTests/QuotaTests.swift
+  s_f52d878e60a7fc::t_ce4e73c7b2c55c 35-36,43-44,59-88
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.49-trip",
+  "base_commit_sha": "77a027f118161ef676788f7145a2c7bf91b6a764",
+  "prompts": {},
+  "sessions": {
+    "s_f52d878e60a7fc": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a130ef-570c-7181-acfb-4ed41f25eba6",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "yucui <yucui@trip.com>"
+    }
+  }
+}
