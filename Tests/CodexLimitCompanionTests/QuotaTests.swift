@@ -32,14 +32,16 @@ final class QuotaTests: XCTestCase {
         var tracker = RecoveryTracker()
         XCTAssertFalse(tracker.observe(try bucket(20)))
         XCTAssertFalse(tracker.observe(try bucket(100)))
-        XCTAssertTrue(tracker.observe(try bucket(0)))
+        XCTAssertFalse(tracker.observe(try bucket(0), at: Date(timeIntervalSince1970: 1000)))
+        XCTAssertTrue(tracker.observe(try bucket(0), at: Date(timeIntervalSince1970: 1060)))
         XCTAssertFalse(tracker.observe(try bucket(0)))
     }
     func testWeeklyLimitBlocksRecovery() throws {
         var tracker = RecoveryTracker()
         XCTAssertFalse(tracker.observe(try bucket(100, weekly: 100)))
         XCTAssertFalse(tracker.observe(try bucket(0, weekly: 100)))
-        XCTAssertTrue(tracker.observe(try bucket(0, weekly: 0)))
+        XCTAssertFalse(tracker.observe(try bucket(0, weekly: 0), at: Date(timeIntervalSince1970: 1000)))
+        XCTAssertTrue(tracker.observe(try bucket(0, weekly: 0), at: Date(timeIntervalSince1970: 1060)))
     }
     func testSwitchAndUnknownBucketsDoNotSend() throws {
         var tracker = RecoveryTracker()
@@ -54,4 +56,34 @@ final class QuotaTests: XCTestCase {
         let allowed = try QuotaBucket.decode(["rateLimits": ["primary": ["usedPercent": 10], "rateLimitReachedType": NSNull()]])[0]
         XCTAssertFalse(allowed.blocked)
     }
+    func testOnePercentArmsAndFivePercentMustBeStable() throws {
+        var tracker = RecoveryTracker()
+        XCTAssertTrue(try bucket(99).blocked)
+        XCTAssertFalse(tracker.observe(try bucket(99)))
+        XCTAssertFalse(tracker.observe(try bucket(98)))
+        XCTAssertFalse(tracker.observe(try bucket(95), at: Date(timeIntervalSince1970: 1000)))
+        XCTAssertFalse(tracker.observe(try bucket(95), at: Date(timeIntervalSince1970: 1010)))
+        XCTAssertTrue(tracker.observe(try bucket(95), at: Date(timeIntervalSince1970: 1060)))
+        XCTAssertFalse(tracker.observe(try bucket(95), at: Date(timeIntervalSince1970: 1120)))
+    }
+    func testFluctuationNetworkFailureAndSleepBreakConfirmation() throws {
+        var tracker = RecoveryTracker()
+        XCTAssertFalse(tracker.observe(try bucket(100)))
+        XCTAssertFalse(tracker.observe(try bucket(95), at: Date(timeIntervalSince1970: 1000)))
+        XCTAssertFalse(tracker.observe(try bucket(96), at: Date(timeIntervalSince1970: 1060)))
+        XCTAssertFalse(tracker.observe(try bucket(95), at: Date(timeIntervalSince1970: 1120)))
+        tracker.interruptConfirmation()
+        XCTAssertFalse(tracker.observe(try bucket(95), at: Date(timeIntervalSince1970: 1180)))
+        XCTAssertFalse(tracker.observe(try bucket(95), at: Date(timeIntervalSince1970: 1800)))
+        XCTAssertTrue(tracker.observe(try bucket(95), at: Date(timeIntervalSince1970: 1860)))
+    }
+    func testMissingWeeklyWindowCannotImplyRecovery() throws {
+        var tracker = RecoveryTracker()
+        XCTAssertFalse(tracker.observe(try bucket(100, weekly: 100)))
+        let missingWeekly = QuotaBucket(id: "codex", name: "Codex", windows: [QuotaWindow(id: "primary", used: 0, minutes: 300, resetsAt: nil)], serverBlocked: false)
+        XCTAssertFalse(tracker.observe(missingWeekly, at: Date(timeIntervalSince1970: 1000)))
+        XCTAssertFalse(tracker.observe(missingWeekly, at: Date(timeIntervalSince1970: 1060)))
+        XCTAssertFalse(tracker.observe(try bucket(0, weekly: 0), at: Date(timeIntervalSince1970: 1120)))
+    }
+
 }

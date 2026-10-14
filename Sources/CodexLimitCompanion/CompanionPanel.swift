@@ -22,6 +22,7 @@ struct CompanionPanel: View {
     var body: some View {
         VStack(spacing: 0) {
             header
+            UpdateBanner(updater: model.updater)
             HStack(spacing: 4) {
                 tabButton("额度概览", symbol: "chart.bar.xaxis", value: 0)
                 tabButton("会话", symbol: "bubble.left.and.bubble.right", value: 1)
@@ -117,10 +118,10 @@ struct CompanionPanel: View {
                             Label(window.title, systemImage: "sparkles").font(.system(size: 12, weight: .medium))
                             Spacer()
                             VStack(alignment: .trailing, spacing: 6) {
-                                Text(model.error != nil ? "上次数据" : bucket.blocked ? "等待恢复" : "可用")
+                                Text(model.error != nil ? "上次数据" : (bucket.blocked || model.waitingForRecovery) ? "等待恢复" : "可用")
                                     .font(.system(size: 10, weight: .semibold)).padding(.horizontal, 8).padding(.vertical, 4)
-                                    .background((bucket.blocked ? Color.orange : .green).opacity(0.10), in: Capsule())
-                                    .foregroundStyle(bucket.blocked ? Color.orange : .green)
+                                    .background(((bucket.blocked || model.waitingForRecovery) ? Color.orange : .green).opacity(0.10), in: Capsule())
+                                    .foregroundStyle((bucket.blocked || model.waitingForRecovery) ? Color.orange : .green)
                                 recoveryEstimate(bucket)
                             }
 
@@ -229,13 +230,13 @@ struct CompanionPanel: View {
             VStack(alignment: .trailing, spacing: 3) {
                 if model.error != nil {
                     Text("等待最新额度数据").foregroundStyle(.orange)
-                } else if bucket.blocked {
+                } else if bucket.blocked || model.waitingForRecovery {
                     if let date = bucket.estimatedRecovery(after: context.date) {
                         Text("预计恢复 " + date.formatted(.dateTime.month().day().hour().minute()))
                             .foregroundStyle(.orange)
-                        Text(model.autoSend || model.autoPaste ? "恢复后约 60 秒内检查并触发" : "自动发送已关闭")
+                        Text(model.autoSend ? "达到 5% 后需两次检查确认" : "自动发送已关闭")
                             .foregroundStyle(.secondary)
-                    } else { Text("预计恢复时间待确认").foregroundStyle(.orange) }
+                    } else { Text("等待 ≥5% 并连续确认").foregroundStyle(.orange) }
                 } else {
                     Text("当前无需等待恢复").foregroundStyle(.green)
                 }
@@ -304,20 +305,13 @@ struct CompanionPanel: View {
                 Divider().padding(.horizontal, 14)
                 setting("额度恢复通知", detail: "恢复可用时发送系统通知", value: $model.notify)
             }.card()
+            UpdateSettings(updater: model.updater).card()
             sectionTitle("菜单栏", subtitle: "图标填充高度表示剩余百分比")
             setting("同时显示百分比", detail: "关闭时仅显示 GPT 图标", value: $model.showPercent).card()
             sectionTitle("继续任务消息", subtitle: "自动与手动发送共用此内容")
             TextEditor(text: $model.message).font(.system(size: 12)).scrollContentBackground(.hidden)
                 .frame(height: 70).padding(10).card()
-            sectionTitle("前台粘贴", subtitle: "兼容模式 · 会操作当前聚焦的聊天")
-            VStack(spacing: 0) {
-                setting("额度恢复时自动粘贴", detail: "与定向发送同时开启可能重复提交", value: $model.autoPaste)
-                Divider().padding(.horizontal, 14)
-                setting("粘贴后按回车发送", detail: "关闭后只填入文本", value: $model.submitPaste).disabled(!model.autoPaste)
-            }.card()
-            if model.autoPaste { notice("请确保前台是目标聊天。粘贴模式需要辅助功能权限。", symbol: "cursorarrow.click", color: .orange) }
-            Text("每 60 秒检查一次；工具需要先观察到额度耗尽，再等待恢复。切换监控额度不会立即触发消息。")
-                .font(.system(size: 10)).foregroundStyle(.secondary).lineSpacing(4)
+
         }
     }
     private var footer: some View {

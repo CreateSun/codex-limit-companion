@@ -86,7 +86,7 @@ final class RPCConnection: @unchecked Sendable {
             }
         }
         try child.run()
-        try send(["method": "initialize", "id": 1, "params": ["clientInfo": ["name": "codex-limit-companion", "title": "Codex Limit Companion", "version": "0.0.3"]]])
+        try send(["method": "initialize", "id": 1, "params": ["clientInfo": ["name": "codex-limit-companion", "title": "Codex Limit Companion", "version": "0.0.4"]]])
     }
 
     private func receive(_ bytes: Data) {

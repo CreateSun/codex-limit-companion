@@ -1,5 +1,4 @@
 import AppKit
-import ApplicationServices
 import SwiftUI
 import UserNotifications
 
@@ -14,21 +13,16 @@ final class CompanionModel: ObservableObject {
     @Published var threadError: String?
     @Published var feedback: String?
     @Published var updatedAt: Date?
+    @Published private(set) var waitingForRecovery = false
     @Published private(set) var recoveryLogs: [RecoveryLog] = []
     @Published var selected: Set<String> = Set(UserDefaults.standard.stringArray(forKey: "targetThreadIds") ?? []) {
         didSet { UserDefaults.standard.set(Array(selected), forKey: "targetThreadIds") }
     }
     @Published var bucketID = UserDefaults.standard.string(forKey: "monitoredBucketID") ?? "" {
-        didSet { UserDefaults.standard.set(bucketID, forKey: "monitoredBucketID"); recovery.reset(); changed?() }
+        didSet { UserDefaults.standard.set(bucketID, forKey: "monitoredBucketID"); recovery.reset(); waitingForRecovery = false; changed?() }
     }
     @Published var autoSend = UserDefaults.standard.object(forKey: "autoSendToSelectedThreads") as? Bool ?? true {
         didSet { UserDefaults.standard.set(autoSend, forKey: "autoSendToSelectedThreads") }
-    }
-    @Published var autoPaste = UserDefaults.standard.object(forKey: "autoPasteAfterLimitReset") as? Bool ?? true {
-        didSet { UserDefaults.standard.set(autoPaste, forKey: "autoPasteAfterLimitReset") }
-    }
-    @Published var submitPaste = UserDefaults.standard.object(forKey: "autoSendAfterPaste") as? Bool ?? true {
-        didSet { UserDefaults.standard.set(submitPaste, forKey: "autoSendAfterPaste") }
     }
     @Published var notify = UserDefaults.standard.object(forKey: "notifyOnRecovery") as? Bool ?? true {
         didSet { UserDefaults.standard.set(notify, forKey: "notifyOnRecovery") }
@@ -39,6 +33,7 @@ final class CompanionModel: ObservableObject {
     @Published var message = UserDefaults.standard.string(forKey: "recoveryText") ?? "额度已恢复，请继续处理上一个任务。" {
         didSet { UserDefaults.standard.set(message, forKey: "recoveryText") }
     }
+    let updater = AppUpdater()
     var changed: (() -> Void)?
     private let logStore: RecoveryLogStore
     private let queueMessage: (String, String) async throws -> Void
@@ -46,10 +41,14 @@ final class CompanionModel: ObservableObject {
     init(loadThreads: @escaping () async throws -> [ThreadSummary] = CodexAppServerClient.listThreads,
          logStore: RecoveryLogStore = RecoveryLogStore(),
          queueMessage: @escaping (String, String) async throws -> Void = { try await CodexAppServerClient.queueMessage(to: $0, message: $1) }) {
+        // Retired: never restore keyboard injection from legacy preferences.
+        UserDefaults.standard.set(false, forKey: "autoPasteAfterLimitReset")
+        UserDefaults.standard.set(false, forKey: "autoSendAfterPaste")
         self.loadThreads = loadThreads
         self.logStore = logStore
         self.queueMessage = queueMessage
         self.recoveryLogs = logStore.load()
+        updater.canInstall = { [weak self] in self?.sending != true }
     }
     func flushLogs() { logStore.flush() }
     private func record(_ entry: RecoveryLog) {
@@ -71,6 +70,7 @@ final class CompanionModel: ObservableObject {
     var remaining: Double? { error == nil ? current?.shortWindow?.remaining : nil }
 
     func start() {
+        updater.start()
         refresh()
         timer = Timer.scheduledTimer(withTimeInterval: 60, repeats: true) { [weak self] _ in
             Task { @MainActor in self?.refresh() }
@@ -87,16 +87,17 @@ final class CompanionModel: ObservableObject {
                 if bucketID.isEmpty || (result.count == 1 && current == nil) { bucketID = result.first { $0.id == "codex" }?.id ?? result[0].id }
                 error = current == nil ? "所选额度暂不可用，请选择其他额度。" : nil
                 updatedAt = Date()
-                if let current, recovery.observe(current) {
+                let recovered = current.map { recovery.observe($0) } ?? false
+                waitingForRecovery = current.map { recovery.isWaiting(for: $0.id) } ?? false
+                if let current, recovered {
                     let trigger = RecoveryTrigger(bucket: current.name)
                     if notify { notifyRecovery() }
                     if autoSend { sendSelected(automaticTrigger: trigger) }
-                    if autoPaste { pasteToForeground(automaticTrigger: trigger) }
-                    if !autoSend && !autoPaste {
+                    if !autoSend {
                         record(RecoveryLog(trigger: trigger, threadID: nil, title: "自动发送已关闭", message: message, status: .skipped))
                     }
                 }
-            } catch { self.error = error.localizedDescription }
+            } catch { recovery.interruptConfirmation(); self.error = error.localizedDescription }
         }
     }
     func refreshThreadsIfNeeded() {
@@ -154,36 +155,6 @@ final class CompanionModel: ObservableObject {
             content.title = "Codex 额度已恢复"
             content.body = "可继续处理选中的任务。"
             UNUserNotificationCenter.current().add(UNNotificationRequest(identifier: UUID().uuidString, content: content, trigger: nil))
-        }
-    }
-    func pasteToForeground(automaticTrigger: RecoveryTrigger? = nil) {
-        let entry = automaticTrigger.map { RecoveryLog(trigger: $0, threadID: nil, title: "前台会话（无法确认目标）", message: message) }
-        if let entry { record(entry) }
-        guard !message.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { finishLog(entry?.id, status: .skipped, detail: "发送内容为空"); return }
-        let options = [kAXTrustedCheckOptionPrompt.takeUnretainedValue() as String: true] as CFDictionary
-        guard AXIsProcessTrustedWithOptions(options) else { feedback = "前台粘贴需要在系统设置 → 隐私与安全性 → 辅助功能中授权。"; finishLog(entry?.id, status: .failed, detail: feedback); return }
-        NSPasteboard.general.clearContents()
-        NSPasteboard.general.setString(message, forType: .string)
-        guard let app = NSRunningApplication.runningApplications(withBundleIdentifier: "com.openai.codex").first ?? NSRunningApplication.runningApplications(withBundleIdentifier: "com.openai.chat").first else {
-            feedback = "请先打开 Codex 或 ChatGPT，并选择目标会话。"; finishLog(entry?.id, status: .failed, detail: feedback); return
-        }
-        app.activate(options: [.activateAllWindows])
-        let submit = submitPaste
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) {
-            Self.key(0x09, flags: .maskCommand)
-            if submit {
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) {
-                    Self.key(0x24)
-                    self.finishLog(entry?.id, status: .submitted, detail: "已模拟回车，无法确认目标会话及是否发送成功。")
-                }
-            } else { self.finishLog(entry?.id, status: .pasted, detail: "仅粘贴，未自动提交。") }
-        }
-    }
-    private static func key(_ code: CGKeyCode, flags: CGEventFlags = []) {
-        let source = CGEventSource(stateID: .hidSystemState)
-        for pressed in [true, false] {
-            let event = CGEvent(keyboardEventSource: source, virtualKey: code, keyDown: pressed)
-            event?.flags = flags; event?.post(tap: .cghidEventTap)
         }
     }
 }

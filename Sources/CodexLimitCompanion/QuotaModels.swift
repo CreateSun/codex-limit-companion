@@ -20,7 +20,7 @@ struct QuotaBucket: Identifiable, Equatable {
     let windows: [QuotaWindow]
     let serverBlocked: Bool
     var shortWindow: QuotaWindow? { windows.min { ($0.minutes ?? Int.max) < ($1.minutes ?? Int.max) } }
-    var blocked: Bool { serverBlocked || windows.contains { $0.used >= 100 } }
+    var blocked: Bool { serverBlocked || windows.contains { $0.remaining <= 1 } }
     static func decode(_ raw: Any?) throws -> [QuotaBucket] {
         guard let result = raw as? [String: Any] else { throw CocoaError(.fileReadCorruptFile) }
         let map = result["rateLimitsByLimitId"] as? [String: Any] ?? [:]
@@ -55,14 +55,42 @@ struct ThreadSummary: Identifiable {
     var project: String { cwd.isEmpty ? "独立会话" : URL(fileURLWithPath: cwd).lastPathComponent }
 }
 
-/// A bucket switch, missing data, or first observation never counts as recovery.
+/// Hysteresis: arm at <=1%, recover at >=5% in every window on two spaced reads.
+/// Unknown/incomplete windows invalidate the episode; network errors break confirmation.
 struct RecoveryTracker {
-    private var previous: [String: Bool] = [:]
-    mutating func reset() { previous = [:] }
-    mutating func observe(_ bucket: QuotaBucket) -> Bool {
-        guard !bucket.windows.isEmpty else { previous.removeValue(forKey: bucket.id); return false }
-        let recovered = previous[bucket.id] == true && !bucket.blocked
-        previous[bucket.id] = bucket.blocked
-        return recovered
+    private struct Episode {
+        var windowIDs: Set<String>
+        var armed: Bool = false
+        var healthySince: Date?
+    }
+    private var episodes: [String: Episode] = [:]
+    mutating func reset() { episodes = [:] }
+    mutating func interruptConfirmation() {
+        for id in episodes.keys { episodes[id]?.healthySince = nil }
+    }
+    func isWaiting(for id: String) -> Bool { episodes[id]?.armed ?? false }
+    mutating func observe(_ bucket: QuotaBucket, at now: Date = Date()) -> Bool {
+        guard !bucket.windows.isEmpty else { episodes.removeValue(forKey: bucket.id); return false }
+        let ids = Set(bucket.windows.map(\.id))
+        var episode = episodes[bucket.id] ?? Episode(windowIDs: ids)
+        if episode.windowIDs != ids { episode = Episode(windowIDs: ids) }
+        defer { episodes[bucket.id] = episode }
+        if bucket.blocked {
+            episode.armed = true
+            episode.healthySince = nil
+            return false
+        }
+        guard episode.armed else { return false }
+        guard bucket.windows.allSatisfy({ $0.remaining >= 5 }) else {
+            episode.healthySince = nil
+            return false
+        }
+        guard let since = episode.healthySince else { episode.healthySince = now; return false }
+        let elapsed = now.timeIntervalSince(since)
+        if elapsed > 150 || elapsed < 0 { episode.healthySince = now; return false }
+        guard elapsed >= 45 else { return false }
+        episode.armed = false
+        episode.healthySince = nil
+        return true
     }
 }

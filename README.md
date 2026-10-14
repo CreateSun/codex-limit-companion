@@ -38,8 +38,8 @@
 
 | 安装包 | 适用环境 |
 | --- | --- |
-| [下载 DMG 安装包](https://github.com/CreateSun/codex-limit-companion/releases/download/v0.0.3/CodexLimitCompanion-0.0.3-macos-arm64.dmg) | macOS 14+ · Apple Silicon |
-| [下载 ZIP 压缩包](https://github.com/CreateSun/codex-limit-companion/releases/download/v0.0.3/CodexLimitCompanion-0.0.3-macos-arm64.zip) | 相同版本，解压后安装 |
+| [下载 DMG 安装包](https://github.com/CreateSun/codex-limit-companion/releases/download/v0.0.4/CodexLimitCompanion-0.0.4-macos-arm64.dmg) | macOS 14+ · Apple Silicon |
+| [下载 ZIP 压缩包](https://github.com/CreateSun/codex-limit-companion/releases/download/v0.0.4/CodexLimitCompanion-0.0.4-macos-arm64.zip) | 相同版本，解压后安装 |
 | [所有版本与更新记录](https://github.com/CreateSun/codex-limit-companion/releases) | 查看历史版本和 SHA-256 校验文件 |
 
 打开 DMG，将 **CodexLimitCompanion.app** 拖入 **Applications**，然后从“应用程序”启动。升级时先退出旧版，只保留一份应用。
@@ -93,6 +93,8 @@
 </details>
 
 ## 开发与反馈
+
+0.0.4 已发布：移除模拟输入，新增手动更新与可选自动下载，并采用带余量的恢复确认。详见 [更新记录](CHANGELOG.md)。
 
 项目使用 Swift / SwiftUI。构建、测试、DMG 打包和实现细节见 [开发指南](DEVELOPING.md)。遇到问题，欢迎提交 [Issue](https://github.com/CreateSun/codex-limit-companion/issues)，附上 macOS 与应用版本、复现步骤；请隐去私人会话及凭据。
 

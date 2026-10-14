@@ -68,7 +68,7 @@ final class RecoveryLogStore {
 extension QuotaBucket {
     /// Recovery needs every exhausted window to reset. Server-only restrictions have no reliable ETA.
     func estimatedRecovery(after now: Date) -> Date? {
-        let exhausted = windows.filter { $0.used >= 100 }
+        let exhausted = windows.filter { $0.remaining <= 1 }
         guard !exhausted.isEmpty else { return nil }
         let dates = exhausted.compactMap(\.resetsAt)
         guard dates.count == exhausted.count, let date = dates.max(), date > now else { return nil }
