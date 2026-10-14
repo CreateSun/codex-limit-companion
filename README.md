@@ -1,8 +1,9 @@
 <div align="center">
   <img src="Assets/AppIcon.png" width="112" alt="Codex Limit Companion 图标" />
   <h1>Codex Limit Companion</h1>
-  <p><strong>少一点等待，多一点继续。</strong></p>
-  <p>一个安静待在 Mac 菜单栏的 Codex 额度助手。<br />看清剩余额度，在额度恢复后，让选中的任务接着做。</p>
+  <p><strong>Auto Resume Codex After Rate Limit Reset</strong></p>
+  <p>Monitor Codex 5-hour and weekly usage limits from the macOS menu bar.<br />Automatically send continuation messages to selected sessions when quota recovers.</p>
+  <p>原生 macOS 菜单栏应用：监控 Codex 五小时与每周额度，<br />在额度恢复后自动向指定会话发送继续指令。</p>
   <p>
     <a href="https://github.com/CreateSun/codex-limit-companion/releases/latest"><img alt="最新版本" src="https://img.shields.io/github/v/release/CreateSun/codex-limit-companion?color=147d92&style=flat-square" /></a>
     <img alt="macOS 14 及以上" src="https://img.shields.io/badge/macOS-14%2B-555?style=flat-square" />
@@ -14,7 +15,7 @@
 
 ---
 
-## 让任务在合适的时候继续
+## Codex 额度耗尽后，自动继续原会话
 
 不必反复打开 Codex 查看额度，也不必记住下一次重置时间。Codex Limit Companion 每 60 秒检查一次额度；当它观察到额度从耗尽恢复为可用时，向你选中的会话发送继续任务的消息。
 
@@ -23,7 +24,7 @@
 - **继续你选中的任务** — 搜索、筛选、多选最近会话；定向发送无需切换前台窗口。
 - **每次触发都有记录** — 查看目标会话、触发时间、消息原文和发送结果，本机保留最近 300 条。
 - **原生、轻巧** — SwiftUI 面板，macOS 26 使用 Liquid Glass；会话列表按需加载并缓存。
-- **由你决定如何继续** — 配置消息、通知、自动发送及可选前台粘贴。
+- **由你决定如何继续** — 配置继续消息、通知和自动发送；支持手动更新与可选自动下载。
 
 ## 看看它的样子
 
@@ -53,21 +54,38 @@
 3. **配置消息**：在「设置」中开启“恢复后发送到已选会话”，填写继续任务的消息。
 4. **保持运行**：应用先观察到额度耗尽，再在恢复可用后触发。日志会出现在「会话 → 恢复日志」。
 
-**推荐使用定向发送，并关闭前台粘贴。** 当前两种模式默认均开启，同时启用可能重复提交。仅前台粘贴模式需要辅助功能权限；正常定向发送不需要。
+**额度监控 → 等待恢复 → 自动继续指定会话。** 消息通过 `codex queue --thread` 定向发送，无需保持 Codex 在前台，也不需要模拟键盘输入或辅助功能权限。
 
-## 你可能关心
+## FAQ / 常见问题
+
+### How to automatically resume Codex after a rate limit reset?
+
+Install Codex Limit Companion on macOS, sign in to a Codex CLI that supports `codex app-server` and `codex queue`, select existing sessions, and enable automatic sending in Settings. Keep the app running: it must observe a restricted quota before it can detect recovery and queue your continuation message.
+
+### How to monitor Codex 5-hour and weekly usage limits?
+
+The menu bar icon shows remaining quota. Open the panel to see the reported 5-hour and weekly usage windows, reset times, and countdowns. Quota is checked every 60 seconds; available windows depend on the limits reported by Codex.
+
+### Can I resume multiple existing Codex sessions?
+
+Yes. Select multiple sessions in the Sessions tab. Each confirmed recovery queues one continuation message per selected session, using its thread ID. It does not create a new task or type into the foreground application.
+
+### Codex 额度用完后，如何自动继续任务？
+
+在「会话」中勾选目标，在「设置」中开启“恢复后发送到已选会话”，并保持应用运行。任一额度周期剩余 ≤1% 或服务端报告受限时进入等待；所有监控周期恢复到 ≥5%，且连续两次有效检查确认后，才发送继续消息。它负责唤醒原会话，不保证任务最终完成。
+
 
 <details>
 <summary><strong>为什么额度重置后没有立即发送？</strong></summary>
 
-应用需要保持运行，并先观察到受限状态。启动时额度已经恢复，不会补发消息。自动恢复等待所监控额度的所有受限周期都变为可用；每 60 秒检查一次，休眠、网络故障或额外的服务端限制可能延迟触发。卡片显示的是估计时间，不是发送承诺。
+应用需要保持运行，并先观察到受限状态。启动时额度已经恢复，不会补发消息。自动恢复要求所有监控周期剩余至少 5%，并通过两次间隔至少 45 秒的有效检查确认；每 60 秒检查一次，休眠、网络故障或额外的服务端限制可能延迟触发。卡片显示的是估计时间，不是发送承诺。
 
 </details>
 
 <details>
 <summary><strong>日志中的“已排队”代表什么？</strong></summary>
 
-代表 Codex 已接受消息，不代表任务执行完毕。失败不会自动重试。前台模拟粘贴无法确认目标会话或实际发送成功，因此单独标注。日志从启用该版本后开始记录，无法补录历史事件。
+代表 Codex 已接受消息，不代表任务执行完毕。失败不会自动重试。0.0.4 已移除前台模拟输入，旧版产生的历史记录仍可查看。日志从启用该版本后开始记录，无法补录历史事件。
 
 </details>
 

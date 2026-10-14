@@ -3,11 +3,11 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Codex Limit Companion — 少一点等待，多一点继续</title>
-<meta name="description" content="Mac 菜单栏里的 Codex 额度助手。查看剩余额度与重置时间，在额度恢复后继续选中的会话，并记录每次自动恢复。">
+<title>Codex Limit Companion — Auto Resume Codex After Rate Limit Reset</title>
+<meta name="description" content="Monitor Codex 5-hour and weekly usage limits on macOS. Automatically send continuation messages to selected sessions after rate limits reset. 额度恢复后自动继续指定 Codex 会话。">
 <meta name="theme-color" content="#fcfcfa">
-<meta property="og:title" content="Codex Limit Companion — 少一点等待，多一点继续">
-<meta property="og:description" content="安静待在 Mac 菜单栏，帮你看额度，也帮任务接着做。">
+<meta property="og:title" content="Codex Limit Companion — Auto Resume Codex After Rate Limit Reset">
+<meta property="og:description" content="Monitor Codex usage limits and automatically resume selected sessions after rate limits reset. 原生 macOS 菜单栏额度监控与自动恢复工具。">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://createsun.github.io/codex-limit-companion/">
 <link rel="canonical" href="https://createsun.github.io/codex-limit-companion/">
@@ -22,10 +22,10 @@
 </header>
 <main id="main">
 <section class="intro">
-<p class="eyebrow">一个小小的 Mac 菜单栏助手</p>
-<h1>少一点等待，<br>多一点继续。</h1>
+<p class="eyebrow">Auto Resume Codex After Rate Limit Reset</p>
+<h1>Codex 额度恢复后，<br>自动继续原会话。</h1>
 <p class="lead">额度用完了，先去做点别的。<br>等它恢复，让选中的 Codex 任务接着做。</p>
-<p>Codex Limit Companion 安静地留在屏幕顶部。剩余额度、重置时间、自动恢复记录，点一下就能看见。</p>
+<p>Codex Limit Companion 是原生 macOS 菜单栏应用，监控 Codex 五小时与每周额度。额度监控 → 等待恢复 → 向指定会话发送继续指令，每次触发都有记录。</p>
 <p class="download-line"><a class="download" href="https://github.com/CreateSun/codex-limit-companion/releases/download/v0.0.4/CodexLimitCompanion-0.0.4-macos-arm64.dmg">下载 macOS 版 ↓</a><span>v0.0.4 · Apple Silicon · macOS 14+</span></p>
 </section>
 <section aria-labelledby="peek-title">
@@ -49,7 +49,7 @@
 <section id="start">
 <h2>三步，准备下一次继续。</h2>
 <ol class="steps"><li><strong>安装与登录。</strong>把应用放入 Applications，安装并登录支持 <code>app-server</code> 和 <code>queue</code> 的 Codex CLI。</li><li><strong>选好任务。</strong>从顶部图标进入「会话」，选择要恢复的任务；到「设置」填写继续消息，开启定向发送。</li><li><strong>保持运行。</strong>应用先观察到额度耗尽，再等待恢复。触发后，到「恢复日志」查看结果。</li></ol>
-<p class="aside">建议只开启定向发送，关闭前台粘贴。当前两种方式默认同时开启，可能重复提交；仅前台粘贴需要辅助功能权限。</p>
+<p class="aside">通过 codex queue 向指定会话发送消息，无需保持 Codex 在前台，不模拟键盘输入，也不需要辅助功能权限。</p>
 </section>
 <section id="download">
 <h2>给 Mac 装上一个小帮手。</h2>
@@ -58,9 +58,13 @@
 <p class="note">支持 Apple Silicon、macOS 14 及以上。安装包为临时签名，尚未经过 Apple 公证；若被系统阻止，请在「系统设置 → 隐私与安全性」中检查，或<a href="https://github.com/CreateSun/codex-limit-companion/blob/main/DEVELOPING.md">从源码构建</a>。Intel Mac 需自行编译。</p>
 </section>
 <section aria-labelledby="faq-title">
-<h2 id="faq-title">几个小问题。</h2>
-<details><summary>额度恢复后，一定会马上继续吗？</summary><p>应用每 60 秒检查一次，需要先观察到额度耗尽，再观察到所监控额度的全部受限周期恢复可用。休眠、网络故障或额外服务端限制可能延迟触发。预计恢复时间只是估计；启动时额度已经可用，不会补发消息。</p></details>
-<details><summary>日志里的“已排队”意味着任务完成了吗？</summary><p>不意味着完成，只表示 Codex 接受了消息。失败不会自动重试。前台模拟提交无法确认目标或成功状态，会单独标注；日志不能补录安装前的事件。</p></details>
+<h2 id="faq-title">FAQ / 常见问题</h2>
+<details><summary>How to automatically resume Codex after a rate limit reset?</summary><p>Install the macOS app and sign in to a Codex CLI that supports <code>app-server</code> and <code>queue</code>. Select existing sessions, enable automatic sending, and keep the app running. After observing a restriction and confirming quota recovery, it queues your continuation message for each selected session.</p></details>
+<details><summary>How to monitor Codex 5-hour and weekly usage limits?</summary><p>The menu bar icon shows remaining quota. Open the panel for reported 5-hour and weekly usage limits, reset times, and countdowns. The app checks every 60 seconds; available windows depend on what Codex reports.</p></details>
+<details><summary>Can I resume multiple existing Codex sessions?</summary><p>Yes. Select multiple sessions and configure a continuation message. Each confirmed recovery sends once per selected thread, without creating a new task or typing into the foreground app.</p></details>
+<details><summary>Codex 额度用完后，如何自动继续任务？</summary><p>选择目标会话，在设置中开启恢复后自动发送，并保持应用运行。剩余 ≤1% 或服务端受限时进入等待；所有监控周期恢复到 ≥5%，连续两次有效检查确认后才发送。它会推动原会话继续，不保证任务最终完成。</p></details>
+<details><summary>额度恢复后，一定会马上继续吗？</summary><p>应用每 60 秒检查一次，需要先观察到额度耗尽，再确认所有监控周期剩余至少 5%，且两次有效检查间隔至少 45 秒。休眠、网络故障或额外服务端限制可能延迟触发。预计恢复时间只是估计；启动时额度已经可用，不会补发消息。</p></details>
+<details><summary>日志里的“已排队”意味着任务完成了吗？</summary><p>不意味着完成，只表示 Codex 接受了消息。失败不会自动重试。0.0.4 已移除前台模拟输入，旧版历史记录仍可查看；日志不能补录安装前的事件。</p></details>
 <details><summary>为什么 Mac 顶部没有图标？</summary><p>先检查系统「菜单栏」设置和菜单栏管理工具。macOS Tahoe 可能将开发期间启动的应用错误关联到 ChatGPT/Codex 的菜单栏开关，本应用已开启时也请检查这两项。开启关联项是临时解决办法，不会清除系统关联。</p></details>
 <details><summary>我的数据放在哪里？</summary><p>设置和恢复日志保存在本机，凭据由本机 Codex CLI 管理。额度查询与消息发送仍通过 Codex 服务完成。本介绍页不使用追踪脚本、广告或第三方字体。</p></details>
 </section>
